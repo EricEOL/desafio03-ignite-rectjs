@@ -6,8 +6,22 @@
 
 :root {
   --background: #1A1D23;
+  --white: #ffffff;
+  --gray-400: #d7d7d7;
+  --pink-500: #FF57B2;
 }
 
 body {
+  font-family: Inter, sans-serif;
   background: var(--background);
+  color: var(--white);
+}
+
+a, button {
+  text-decoration: none;
+  color: var(--white);
+}
+
+button {
+  cursor: pointer;
 }
