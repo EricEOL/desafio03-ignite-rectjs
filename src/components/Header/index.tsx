@@ -3,10 +3,12 @@ import styles from './header.module.scss';
 
 export default function Header() {
   return (
-    <header className={styles.container}>
+    <header className={styles.postHeader}>
       <Link href="/">
-        <img className={styles.logo} src="/Logo.svg" alt="logo" />
+        <a>
+          <img src="/logo.svg" alt="logo" className={styles.logo} />
+        </a>
       </Link>
     </header>
-  )
+  );
 }
