@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
 
@@ -33,13 +35,44 @@ interface HomeProps {
 }
 
 export default function Home({ results, next_page }: PostPagination) {
+
+  const [posts, setPosts] = useState<Post[]>(() => results);
+  const [nextPage, setNextPage] = useState(() => String(next_page));
+
+  function handleNextPage() {
+
+    if(nextPage === null) return;
+
+    fetch(nextPage)
+      .then(response => response.json())
+      .then(data => {
+
+        setNextPage(data.next_page);
+
+        data.results.map(post => {
+          const postFormated = {
+            slug: post.uid,
+            first_publication_date: format(new Date(post.first_publication_date), 'dd MMM yyyy', { locale: ptBR }),
+            data: {
+              title: post.data.title,
+              subtitle: post.data.subtitle,
+              author: post.data.author
+            }
+          }
+          setPosts([...posts, postFormated]);
+        })
+      });
+
+  }
+
+
   return (
     <main className={commonStyles.container}>
       <img src="/Logo.svg" alt="logo" className={styles.logo} />
 
       <div className={styles.posts}>
-        {results.map(post => (
-          <Link href={`/post/${post.uid}`}>
+        {posts.map(post => (
+          <Link key={post.uid} href={`/post/${post.uid}`}>
             <a>
               <strong>{post.data.title}</strong>
               <p>{post.data.subtitle}</p>
@@ -50,7 +83,7 @@ export default function Home({ results, next_page }: PostPagination) {
             </a>
           </Link>
         ))}
-        <button>Carregar mais posts</button>
+        {nextPage !== null && <button onClick={handleNextPage}>Carregar mais posts</button>}
       </div>
     </main>
   )
@@ -63,7 +96,7 @@ export const getStaticProps: GetStaticProps = async () => {
     Prismic.predicates.at('document.type', 'posts')
   ], {
     fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-    pageSize: 20,
+    pageSize: 1,
   });
 
   const next_page = postsResponse.next_page;
@@ -71,7 +104,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = postsResponse.results.map(post => {
     return {
       slug: post.uid,
-      first_publication_date: format(new Date(post.last_publication_date), 'dd MMM yyyy', { locale: ptBR }),
+      first_publication_date: format(new Date(post.first_publication_date), 'dd MMM yyyy', { locale: ptBR }),
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
@@ -79,8 +112,6 @@ export const getStaticProps: GetStaticProps = async () => {
       }
     }
   })
-
-  console.log(postsResponse);
 
   return {
     props: {
